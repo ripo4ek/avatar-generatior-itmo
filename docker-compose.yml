@@ -1,0 +1,56 @@
+services:
+  identidock:
+    container_name: identidock
+    image: ripo4ek/flask-redis-avatar:latest
+    ports:
+      - "5000:5000"
+      - "9191:9191"
+      - "9090:9090"
+    networks:
+      - flask-redis-moster
+    environment:
+      ENV: "${ENV_STATE}"
+    volumes:
+      - ./app:/app
+  dnmonster:
+    container_name: dnmonster
+    image: amouat/dnmonster:1.0
+    networks:
+      - flask-redis-moster
+  redis:
+    container_name: redis
+    image: redis:3.0
+    networks:
+      - flask-redis-moster
+  influxdb:
+    container_name: influxdb
+    image: influxdb
+    ports:
+      - "8086:8086"
+    volumes:
+      - /usr/local/etc/influxdb.conf
+    restart: always
+    networks:
+      - flask-redis-moster
+  grafana:
+    container_name: grafana
+    image: grafana/grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./.docker/grafana:/var/lib/grafana
+      - ./grafana/provisioning/:/etc/grafana/provisioning/
+    restart: always
+    networks:
+      - flask-redis-moster
+  telegraf:
+    container_name: telegraf
+    image: telegraf
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - .docker/telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+    restart: always
+    networks:
+      - flask-redis-moster
+networks:
+  flask-redis-moster:
